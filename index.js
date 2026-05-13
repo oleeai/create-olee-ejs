@@ -43,9 +43,9 @@ console.log('');
 
 // Clone private template
 try {
-  execSync(`gh repo clone oleeai/ejs "${dest}" -- --depth=1 --quiet`, { stdio: 'inherit' });
+  execSync(`git clone --depth=1 --quiet git@github.com:oleeai/ejs.git "${dest}"`, { stdio: 'inherit' });
 } catch {
-  console.log(`  ${c.red}✗${c.reset}  could not clone — run ${c.cyan}gh auth login${c.reset} first`);
+  console.log(`  ${c.red}✗${c.reset}  could not clone — make sure your SSH key has access to oleeai/ejs`);
   console.log('');
   process.exit(1);
 }
