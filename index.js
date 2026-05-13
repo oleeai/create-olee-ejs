@@ -95,6 +95,15 @@ async function main() {
 
   fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
 
+  // Install dependencies
+  process.stdout.write(`  ${c.dim}…${c.reset}  installing dependencies\r`);
+  try {
+    execSync('npm install', { cwd: dest, stdio: 'pipe' });
+    console.log(`  ${c.green}✓${c.reset}  installed dependencies`);
+  } catch (e) {
+    console.log(`  ${c.yellow}!${c.reset}  npm install failed — run it manually`);
+  }
+
   console.log('');
   console.log(`  ${c.bold}get started:${c.reset}`);
   console.log('');
@@ -102,7 +111,6 @@ async function main() {
   if (useSupabase) {
     console.log(`    ${c.dim}# fill in .env.example with your Supabase credentials${c.reset}`);
   }
-  console.log(`    ${c.cyan}npm install${c.reset}`);
   console.log(`    ${c.cyan}npm run dev${c.reset}`);
   console.log('');
 }
