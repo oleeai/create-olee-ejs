@@ -1,11 +1,20 @@
 {
   "name": "create-olee-ejs",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Scaffold an olee-ejs project",
   "main": "index.js",
   "bin": {
-    "create-olee-ejs": "./index.js"
+    "create-olee-ejs": "index.js"
   },
-  "keywords": ["olee", "express", "typescript", "template"],
+  "files": [
+    "index.js"
+  ],
+  "keywords": [
+    "olee",
+    "express",
+    "typescript",
+    "template"
+  ],
+  "author": "oleeai",
   "license": "MIT"
 }
