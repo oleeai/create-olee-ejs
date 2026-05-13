@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const fs       = require('fs');
 const path     = require('path');
 const readline = require('readline');
@@ -18,26 +18,6 @@ const c = {
   red:    '\x1b[91m',
 };
 
-const projectName = process.argv[2];
-
-if (!projectName) {
-  console.log('');
-  console.log(`  ${c.red}✗${c.reset}  please provide a project name`);
-  console.log('');
-  console.log(`     ${c.dim}npx create-olee-ejs${c.reset} ${c.cyan}my-project${c.reset}`);
-  console.log('');
-  process.exit(1);
-}
-
-const dest = path.resolve(process.cwd(), projectName);
-
-if (fs.existsSync(dest)) {
-  console.log('');
-  console.log(`  ${c.red}✗${c.reset}  folder ${c.yellow}${projectName}${c.reset} already exists`);
-  console.log('');
-  process.exit(1);
-}
-
 const rl  = readline.createInterface({ input: process.stdin, output: process.stdout });
 const ask = (q) => new Promise(resolve => rl.question(q, a => resolve(a.trim())));
 
@@ -46,8 +26,34 @@ async function main() {
   console.log(`  ${c.blue}${c.bold}olee.ai${c.reset} ${c.dim}|${c.reset} ${c.bold}${c.white}olee-ejs${c.reset}`);
   console.log('');
 
+  // Project name — from argv or prompt
+  let projectName = process.argv[2];
+  if (!projectName) {
+    projectName = await ask(`  ${c.cyan}?${c.reset}  Project name: ${c.reset}`);
+    if (!projectName) {
+      console.log('');
+      console.log(`  ${c.red}✗${c.reset}  project name is required`);
+      console.log('');
+      rl.close();
+      process.exit(1);
+    }
+  }
+
+  const dest = path.resolve(process.cwd(), projectName);
+
+  if (fs.existsSync(dest)) {
+    console.log('');
+    console.log(`  ${c.red}✗${c.reset}  folder ${c.yellow}${projectName}${c.reset} already exists`);
+    console.log('');
+    rl.close();
+    process.exit(1);
+  }
+
   const supabaseAnswer = await ask(`  ${c.cyan}?${c.reset}  Add Supabase? ${c.dim}(y/N)${c.reset}  `);
   const useSupabase    = supabaseAnswer.toLowerCase() === 'y';
+
+  const vscodeAnswer = await ask(`  ${c.cyan}?${c.reset}  Open in VS Code? ${c.dim}(y/N)${c.reset}  `);
+  const openVscode   = vscodeAnswer.toLowerCase() === 'y';
 
   rl.close();
   console.log('');
@@ -78,7 +84,6 @@ async function main() {
   if (!useSupabase) {
     if (pkg.dependencies) delete pkg.dependencies['@supabase/supabase-js'];
 
-    // Strip Supabase vars from .env.example
     const envExPath = path.join(dest, '.env.example');
     if (fs.existsSync(envExPath)) {
       const stripped = fs.readFileSync(envExPath, 'utf8')
@@ -100,8 +105,19 @@ async function main() {
   try {
     execSync('npm install', { cwd: dest, stdio: 'pipe' });
     console.log(`  ${c.green}✓${c.reset}  installed dependencies`);
-  } catch (e) {
+  } catch {
     console.log(`  ${c.yellow}!${c.reset}  npm install failed — run it manually`);
+  }
+
+  // Open in VS Code
+  if (openVscode) {
+    try {
+      const cmd = process.platform === 'win32' ? 'code.cmd' : 'code';
+      execFileSync(cmd, ['.'], { cwd: dest, stdio: 'ignore' });
+      console.log(`  ${c.green}✓${c.reset}  opened    ${c.dim}VS Code${c.reset}`);
+    } catch {
+      console.log(`  ${c.yellow}!${c.reset}  could not open VS Code — make sure the ${c.dim}code${c.reset} command is installed`);
+    }
   }
 
   console.log('');
